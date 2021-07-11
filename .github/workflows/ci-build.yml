@@ -1,0 +1,34 @@
+name: Build (main) 
+
+on: push
+
+env:
+  BUILD_DIR_NAME: BUILD
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build_type: [Release, Debug]
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Get repo with submodules
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Create ${{ matrix.os }} ${{ matrix.build_type }}  build folder
+        shell: bash
+        run: cmake -E make_directory ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
+
+      - name: Configure CMake with ${{ matrix.build_type }} build type
+        working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
+        shell: bash
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type}}
+
+      - name: Build solution
+        working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
+        shell: bash
+        run: cmake --build .
