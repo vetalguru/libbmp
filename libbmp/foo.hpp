@@ -3,4 +3,4 @@
 
 int return_42();
 
-#endif  // FOO_H_
+#endif // FOO_H_

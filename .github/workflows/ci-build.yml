@@ -6,7 +6,27 @@ env:
   BUILD_DIR_NAME: BUILD
 
 jobs:
+  static_analyze:
+    runs-on: ubuntu-latest
+
+    steps:
+     - uses: actions/checkout@v2
+     - uses: actions/setup-python@v1
+
+     - name: Install CPP lint package
+       run: pip install cpplint
+
+     - name: Run clang-format lint static analyze
+       uses: DoozyX/clang-format-lint-action@v0.11
+       with:
+         source: '.'
+         extensions: 'c,cpp,h,hpp' 
+         clangFormatVersion: 11
+
   build:
+    needs:
+      static_analyze
+
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
