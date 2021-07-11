@@ -46,9 +46,38 @@ jobs:
       - name: Configure CMake with ${{ matrix.build_type }} build type
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
         shell: bash
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type}}
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build solution
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
         shell: bash
         run: cmake --build .
+        
+      - uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
+          key: ${{ github.run_id }}-build-${{ matrix.build_type }}-${{ matrix.os }}
+        
+  create-package:
+      needs: build
+
+      runs-on: ${{ matrix.os }}
+      strategy:
+        matrix:
+          os: [ubuntu-latest]
+
+      env:
+        BUILD_TYPE: Release
+
+      steps:
+        - uses: actions/checkout@v2
+          with:
+            submodules: recursive
+
+        - uses: actions/cache@v2
+          with:
+            path: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
+            key: ${{ github.run_id }}-build-${{ env.BUILD_TYPE }}-${{ matrix.os }}
+
+        - name: Create package placeholder
+          run: echo "Create package placeholder"
