@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION ${CMAKE_MIN_REQ_VERSION})
 
 set(PROJECT_NAME sample)
 
