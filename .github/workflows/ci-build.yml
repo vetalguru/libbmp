@@ -1,6 +1,13 @@
 name: Build (main) 
 
-on: push
+on: 
+  push:
+    branches:
+    - main
+    - release/*
+  pull_request:
+    branches:
+    - main
 
 env:
   BUILD_DIR_NAME: BUILD
@@ -11,10 +18,13 @@ jobs:
 
     steps:
      - uses: actions/checkout@v2
-     - uses: actions/setup-python@v1
+     - uses: actions/setup-python@v2
 
      - name: Install CPP lint package
        run: pip install cpplint
+
+       #- name: Run cpplint analyze
+       #run: cpplint --recursive "${{ github.workspace }}"
 
      - name: Run clang-format lint static analyze
        uses: DoozyX/clang-format-lint-action@v0.11
@@ -33,22 +43,54 @@ jobs:
         build_type: [Release, Debug]
         os: [ubuntu-latest]
 
+    env:
+      BUILD_TYPE: ${{ matrix.build_type }}
+
     steps:
       - name: Get repo with submodules
         uses: actions/checkout@v2
         with:
           submodules: recursive
 
-      - name: Create ${{ matrix.os }} ${{ matrix.build_type }}  build folder
+      - name: Create ${{ matrix.os }} ${{ env.BUILD_TYPE }} build folder
         shell: bash
         run: cmake -E make_directory ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
 
-      - name: Configure CMake with ${{ matrix.build_type }} build type
-        working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
+      - name: Configure CMake with ${{ env.BUILD_TYPE }} build type
+        working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
         shell: bash
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type}}
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
       - name: Build solution
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
         shell: bash
-        run: cmake --build .
+        run: cmake --build . --config $BUILD_TYPE
+        
+      - uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
+          key: ${{ github.run_id }}-build-${{ env.BUILD_TYPE }}-${{ matrix.os }}
+
+  tests:
+       needs: build
+       
+       runs-on: ${{ matrix.os }}
+       strategy:
+         matrix:
+           os: [ubuntu-latest]
+           
+       env:
+         BUILD_TYPE: Debug
+         TEST_LABEL: Unit
+         
+       steps:
+         - uses: actions/cache@v2
+           with:
+             path: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
+             key: ${{ github.run_id }}-build-${{ env.BUILD_TYPE }}-${{ matrix.os }}
+
+         - name: ${{ env.TEST_LABEL }} Test on ${{ matrix.os }}
+           working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
+           shell: bash
+           run: ctest -C $BUILD_TYPE -L TEST_LABEL --output-on-failure
+
