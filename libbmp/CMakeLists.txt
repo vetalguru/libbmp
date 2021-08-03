@@ -8,7 +8,9 @@ set(BMPLIB_TESTS_DIR   ${BMPLIB_ROOT_DIR}/tests)
 
 set(INCLUDES ${BMPLIB_INCLUDE_DIR}/foo.hpp
              ${BMPLIB_INCLUDE_DIR}/bmp_decoder.hpp
-             ${BMPLIB_INCLUDE_DIR}/unused.hpp)
+             ${BMPLIB_INCLUDE_DIR}/unused.hpp
+             ${BMPLIB_INCLUDE_DIR}/bmp_structures.hpp
+             ${BMPLIB_INCLUDE_DIR}/common.hpp)
 
 set(SOURCES ${BMPLIB_SOURCES_DIR}/foo.cpp
             ${BMPLIB_SOURCES_DIR}/bmp_decoder.cpp)
