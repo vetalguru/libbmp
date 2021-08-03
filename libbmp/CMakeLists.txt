@@ -6,9 +6,12 @@ set(BMPLIB_INCLUDE_DIR ${BMPLIB_ROOT_DIR}/include)
 set(BMPLIB_SOURCES_DIR ${BMPLIB_ROOT_DIR}/src)
 set(BMPLIB_TESTS_DIR   ${BMPLIB_ROOT_DIR}/tests)
 
-set(INCLUDES ${BMPLIB_INCLUDE_DIR}/foo.hpp)
+set(INCLUDES ${BMPLIB_INCLUDE_DIR}/foo.hpp
+             ${BMPLIB_INCLUDE_DIR}/bmp_decoder.hpp
+             ${BMPLIB_INCLUDE_DIR}/unused.hpp)
 
-set(SOURCES ${BMPLIB_SOURCES_DIR}/foo.cpp)
+set(SOURCES ${BMPLIB_SOURCES_DIR}/foo.cpp
+            ${BMPLIB_SOURCES_DIR}/bmp_decoder.cpp)
 
 add_library(${PROJECT_NAME} ${SOURCES} ${INCLUDES})
 
