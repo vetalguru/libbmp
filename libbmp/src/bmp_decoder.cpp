@@ -1,5 +1,6 @@
 #include "bmp_decoder.hpp"
 
+#include "algorithm"
 #include <cstdlib>
 #include <fstream>
 
@@ -11,7 +12,7 @@ using namespace Decoder;
 
 BmpDecoder::BmpDecoder(const std::string &aFileName)
     : m_isValid{false}, m_fileSize{0}, m_bitsOffset{0}, m_infoStructSize{0},
-      m_bitCount{0}, m_width{0}, m_height{0} {
+      m_bitCount{0} {
   m_isValid = parseFile(aFileName);
 }
 
@@ -25,11 +26,25 @@ uint32_t BmpDecoder::bitOffset() const { return m_bitsOffset; }
 
 uint32_t BmpDecoder::infoStructureSize() const { return m_infoStructSize; }
 
-int32_t BmpDecoder::width() const { return abs(m_width); }
+uint32_t BmpDecoder::width() const {
+  return static_cast<uint32_t>(m_bitmap[0].size());
+}
 
-int32_t BmpDecoder::height() const { return abs(m_height); }
+uint32_t BmpDecoder::height() const {
+  return static_cast<uint32_t>(m_bitmap.size());
+}
 
 uint16_t BmpDecoder::bitCount() const { return m_bitCount; }
+
+bool BmpDecoder::pixelColor(const uint32_t aX, const uint32_t aY,
+                            PixelColor &aPixelColor) const {
+  if (aX >= width() || aY >= height())
+    return false;
+
+  aPixelColor = m_bitmap[aX][aY];
+
+  return true;
+}
 
 bool BmpDecoder::parseFile(const std::string &aFileName) {
   if (aFileName.empty())
@@ -55,9 +70,37 @@ bool BmpDecoder::parseFile(const std::string &aFileName) {
     return false;
 
   m_infoStructSize = bmpInfoHeader.biSize;
-  m_width = bmpInfoHeader.biWidth;
-  m_height = bmpInfoHeader.biHeight;
+  auto width = static_cast<uint32_t>(bmpInfoHeader.biWidth);
+  auto height = static_cast<uint32_t>(abs(bmpInfoHeader.biHeight));
   m_bitCount = bmpInfoHeader.biBitCount;
+
+  const unsigned bytesPerPixel = bmpInfoHeader.biBitCount >> 3;
+  const unsigned padding = 4 - ((width * bytesPerPixel) % 4);
+
+  bmp_stream.seekg(m_bitsOffset, std::ios::beg);
+
+  for (uint32_t i = 0; i < height; ++i) {
+    std::vector<PixelColor> row;
+
+    for (uint32_t j = 0; j < width; ++j) {
+      PixelColor color;
+      readFromStream(bmp_stream, color.Blue);
+      readFromStream(bmp_stream, color.Green);
+      readFromStream(bmp_stream, color.Red);
+
+      row.push_back(color);
+    }
+
+    m_bitmap.push_back(row);
+
+    for (unsigned p = 0; p < padding; ++p) {
+      uint8_t tmpByte = 0;
+      readFromStream(bmp_stream, tmpByte);
+    }
+  }
+
+  if (bmpInfoHeader.biHeight > 0)
+    std::reverse(m_bitmap.begin(), m_bitmap.end());
 
   return true;
 }
