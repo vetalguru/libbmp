@@ -4,7 +4,8 @@ project(libbmp_unit_tests)
 
 enable_testing()
 
-set(BMP_UT_LIST ${BMPLIB_UNIT_TESTS_DIR}/ut_foo_tests.cpp)
+set(BMP_UT_LIST ${BMPLIB_UNIT_TESTS_DIR}/ut_foo_tests.cpp
+                ${BMPLIB_UNIT_TESTS_DIR}/ut_common_tests.cpp)
 
 add_executable(${PROJECT_NAME} ${BMP_UT_LIST})
 target_link_libraries(${PROJECT_NAME} gtest_main bmp)

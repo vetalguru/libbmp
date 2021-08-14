@@ -116,6 +116,9 @@ bool BmpDecoder::decodeBitmapFileHeader(std::ifstream &aStream,
   readFromStream(aStream, aFileHeader.bfReserved2);
   readFromStream(aStream, aFileHeader.bfOffBits);
 
+  if (isBigEndian())
+    aFileHeader.changeBytesOrder();
+
   return true;
 }
 
@@ -135,6 +138,9 @@ bool BmpDecoder::decodeBitmapInfoHeader(std::ifstream &aStream,
   readFromStream(aStream, aInfoHeader.biYPelsPerMeter);
   readFromStream(aStream, aInfoHeader.biClrUsed);
   readFromStream(aStream, aInfoHeader.biClrImportant);
+
+  if (isBigEndian())
+    aInfoHeader.changeBytesOrder();
 
   return true;
 }
