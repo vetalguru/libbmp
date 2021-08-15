@@ -10,18 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-     - uses: actions/checkout@v2
-     - uses: actions/setup-python@v1
+     - name: 🛎️ Checkout
+       uses: actions/checkout@v2.3.4
+       with:
+         persist-credentials: false
 
-     - name: Install CPP lint package
+     - name: 🔧 Setup a Python environment
+       uses: actions/setup-python@v2
+
+     - name: 🔧 Install CPP lint package
        run: pip install cpplint
 
-     - name: Run clang-format lint static analyze
-       uses: DoozyX/clang-format-lint-action@v0.11
+     - name: ✨ Run clang-format lint static analyze
+       uses: DoozyX/clang-format-lint-action@v0.12
        with:
          source: '.'
          extensions: 'c,cpp,h,hpp' 
-         clangFormatVersion: 11
+         clangFormatVersion: 12
 
   build:
     needs:
@@ -34,21 +39,32 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
-      - name: Get repo with submodules
-        uses: actions/checkout@v2
+      - name: 🛎️ Get repo with submodules
+        uses: actions/checkout@v2.3.4
         with:
           submodules: recursive
+          persist-credentials: false
 
-      - name: Create ${{ matrix.os }} ${{ matrix.build_type }}  build folder
+      - name: 👷 Create ${{ matrix.os }} ${{ matrix.build_type }}  build folder
         shell: bash
         run: cmake -E make_directory ${{ github.workspace }}/${{ env.BUILD_DIR_NAME }}
 
-      - name: Configure CMake with ${{ matrix.build_type }} build type
+      - name: 👷 Configure CMake with ${{ matrix.build_type }} build type
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
         shell: bash
         run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type}}
 
-      - name: Build solution
+      - name: 👷 Build solution
         working-directory: ${{ github.workspace }}/${{ env.BUILD_DIR_NAME}}
         shell: bash
         run: cmake --build .
+
+  unit_tests:
+    needs:
+      build
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Run Unit tests
+      run: ${github.workspace}/${ env.BUILD_DIR_NAME}/libbmp/tests/module_tests/libbmp_module_tests}
